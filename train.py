@@ -106,11 +106,13 @@ def gather_sent_embeddings(i, t_array, t_array_attn):
             dtype=tf.float32,
             sequence_length=[sent_len]*batch_size)
 
-    h_i_t_full = tf.stack(axis=1, values=outputs_h_i_t)
+    #h_i_t_full = tf.stack(axis=1, values=outputs_h_i_t)
+    h_i_t_full = tf.transpose(outputs_h_i_t, [1,0,2])
+
     h_i_t = tf.reshape(h_i_t_full, [-1, hidden_layer_dim*2])
 
     u_i_t = tf.reshape(
-        tf.nn.relu(tf.matmul(h_i_t, W_w) + b_w), [batch_size, sent_len, attn_dim])
+        tf.tanh(tf.matmul(h_i_t, W_w) + b_w), [batch_size, sent_len, attn_dim])
 
     alpha_i_t = tf.expand_dims(
         tf.nn.softmax(tf.reduce_sum(u_w * u_i_t, axis=-1)), axis=-1)
@@ -148,11 +150,12 @@ with tf.variable_scope("gru_sent_to_doc"):
         dtype=tf.float32,
         sequence_length=[doc_len]*batch_size)
 
-h_i_full = tf.stack(axis=1, values=outputs_h_i)
+#h_i_full = tf.stack(axis=1, values=outputs_h_i)
+h_i_full = tf.transpose(outputs_h_i, [1,0,2])
 h_i = tf.reshape(h_i_full, [-1, hidden_layer_dim*2])
 
 u_i = tf.reshape(
-    tf.nn.relu(tf.matmul(h_i, W_s) + b_s), [batch_size, doc_len, attn_dim])
+    tf.tanh(tf.matmul(h_i, W_s) + b_s), [batch_size, doc_len, attn_dim])
 
 alpha_i = tf.expand_dims(
     tf.nn.softmax(tf.reduce_sum(u_s * u_i, axis=-1)), axis=-1)
